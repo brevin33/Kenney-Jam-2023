@@ -20,7 +20,7 @@ public class Slots : MonoBehaviour
     private void OnMouseEnter()
     {
         description.SetActive(true);
-        nameText.text = animal.name;
+        nameText.text = animal.name1 + animal.name2;
         abilityText.text = animal.abilityText1 + ": " + animal.abilityText2 + "\n" + "HP: " + animal.maxHP.ToString() + " Attack: " + animal.damage.ToString() + " Cooldown: " + animal.attackFrequencey.ToString() + " Range: "+ animal.getRange().ToString();
     }
 

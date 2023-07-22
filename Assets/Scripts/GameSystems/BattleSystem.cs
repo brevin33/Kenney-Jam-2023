@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
@@ -71,8 +72,11 @@ public class BattleSystem : MonoBehaviour
                 actionCooldown += Time.deltaTime;
                 if (actionCooldown > actionSpeed)
                 {
-                    actionCooldown = 0;
-                    takeAction(actionsToTake[actionIndex], game.animals[actionsToTake[actionIndex].x][actionsToTake[actionIndex].y].ourTeam);
+                    if (game.animals[actionsToTake[actionIndex].x][actionsToTake[actionIndex].y] is not null)
+                    {
+                        actionCooldown = 0;
+                        takeAction(actionsToTake[actionIndex], game.animals[actionsToTake[actionIndex].x][actionsToTake[actionIndex].y].ourTeam);
+                    }
                     actionIndex += 1;
                 }
                 return;

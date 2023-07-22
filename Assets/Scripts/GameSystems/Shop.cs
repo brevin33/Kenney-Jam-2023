@@ -92,7 +92,7 @@ public class Shop : MonoBehaviour
 
     public void buy(int index, Slots slot)
     {
-        if (money == 0)
+        if (money == 0 || game.boardFull())
         {
             return;
         }

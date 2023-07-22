@@ -38,6 +38,8 @@ public class Game : MonoBehaviour
     BattleSystem battleSystem;
     [SerializeField]
     GameObject wonGame;
+    [SerializeField]
+    TextMeshProUGUI winsText;
     //---------------------------------------------------
 
     public static Vector2 trueMousePos;
@@ -81,6 +83,7 @@ public class Game : MonoBehaviour
             animals[y].Add(null);
             animals[y].Add(null);
         }
+
     }
 
     private void Update()
@@ -117,6 +120,11 @@ public class Game : MonoBehaviour
         }
     }
 
+    public bool boardFull()
+    {
+        return numAnimals >= maxAnimals;
+    }
+
     public void move(Vector3Int originalPos, Vector3Int position)
     {
         animals[position.x][position.y] = animals[originalPos.x][originalPos.y];
@@ -132,16 +140,19 @@ public class Game : MonoBehaviour
     {
         numAnimals--;
         unitText.text = numAnimals.ToString() + "/" + maxAnimals.ToString();
+        playersAnimals.Remove(animals[originalPos.x][originalPos.y]);
         animals[originalPos.x][originalPos.y] = null;
     }
 
     public void roundOver()
     {
         wins++;
+        winsText.text = wins.ToString() + "/6";
         if (wins == 6)
         {
             wonGame.SetActive(true);
         }
+
         shopSprites.SetActive(true);
         shop.enableButton();
         for (int x = 0; x < 7; x++)
@@ -160,6 +171,7 @@ public class Game : MonoBehaviour
             animals[a.startPos.x][a.startPos.y] = a;
             a.gameObject.SetActive(true);
             a.moveToStartPos();
+            a.battleOver();
         }
     }
 
@@ -174,6 +186,7 @@ public class Game : MonoBehaviour
             {
                 if (animals[x][y] is not null)
                 {
+                    animals[x][y].battleStartEffect();
                     battleSystem.ourAnimals.Add(new Vector2Int(x,y));
                 }
             }
@@ -184,6 +197,7 @@ public class Game : MonoBehaviour
             {
                 if (animals[x][y] is not null)
                 {
+                    animals[x][y].battleStartEffect();
                     battleSystem.enemyAnimals.Add(new Vector2Int(x, y));
                 }
             }
