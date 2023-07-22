@@ -8,7 +8,7 @@ public class Shop : MonoBehaviour
 {
 
     [SerializeField]
-    GameObject[] Animals;
+    public GameObject[] Animals;
 
     [SerializeField]
     Slots[] Slots;
@@ -59,6 +59,11 @@ public class Shop : MonoBehaviour
             refreshButton.interactable = false;
         }
         refresh();
+    }
+
+    public GameObject getRandomAnimal()
+    {
+        return Animals[Random.Range(0, Animals.Length)];
     }
 
     public void enableButton()

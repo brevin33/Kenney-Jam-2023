@@ -12,7 +12,7 @@ public class Animal : MonoBehaviour
     [SerializeField]
     public int damage;
     [SerializeField]
-    int range { get; }
+    int range;
 
     [SerializeField]
     float maxSpeedAnimation;
@@ -69,6 +69,8 @@ public class Animal : MonoBehaviour
 
     public int HP;
 
+    public Vector2Int startPos;
+
 
 
 
@@ -76,19 +78,11 @@ public class Animal : MonoBehaviour
 
     //---------------------------------------------------
 
-    private void Update()
-    {
-        battleOver();
-    }
-
 
     private void Awake()
     {
-        HP = maxHP;
-        cooldown = attackFrequencey;
-        HPText.text = HP.ToString();
-        attackText.text = damage.ToString();
-        cooldownText.text = cooldown.ToString();
+        battleOver();
+        startPos = Vector2Int.RoundToInt(transform.position);
     }
 
     //---------------------------------------------------
@@ -99,6 +93,12 @@ public class Animal : MonoBehaviour
         cooldownText.text = cooldown.ToString();
     }
 
+    public void moveToStartPos()
+    {
+        HP = maxHP;
+        setCooldown(attackFrequencey);
+        transform.position = (Vector2)startPos;
+    }
 
     public int getRange()
     {
@@ -185,6 +185,7 @@ public class Animal : MonoBehaviour
     {
         if (BattleSystem.battling)
         {
+            sellSprite.SetActive(false);
             return;
         }
         transform.position += (Vector3)(Game.trueMousePos - Game.lastTrueMousePos);
@@ -192,9 +193,14 @@ public class Animal : MonoBehaviour
     private void OnMouseUp()
     {
         sellSprite.SetActive(false);
+        if (BattleSystem.battling)
+        {
+            return;
+        }
         if (Game.mousePos.x >= 0 && Game.mousePos.x <= 2 && Game.mousePos.y >= 0 && Game.mousePos.y <= 3)
         {
             transform.position = new Vector3(Game.mousePos.x, Game.mousePos.y, 0);
+            startPos = Vector2Int.RoundToInt( transform.position);
             game.move(originalPos,Vector3Int.RoundToInt( transform.position));
         }
         else if (Game.mousePos.x >= 3 && Game.mousePos.x <= 6 && Game.mousePos.y >= 0 && Game.mousePos.y <= 3)

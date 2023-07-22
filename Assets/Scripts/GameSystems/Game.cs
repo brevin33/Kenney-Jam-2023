@@ -30,6 +30,14 @@ public class Game : MonoBehaviour
     GameObject sellSprite;
     [SerializeField]
     TextMeshProUGUI unitText;
+    [SerializeField]
+    Shop shop;
+    [SerializeField]
+    GameObject shopSprites;
+    [SerializeField]
+    BattleSystem battleSystem;
+    [SerializeField]
+    GameObject wonGame;
     //---------------------------------------------------
 
     public static Vector2 trueMousePos;
@@ -42,16 +50,20 @@ public class Game : MonoBehaviour
 
     public List<List<Animal>> animals;
 
+    public List<Animal> playersAnimals;
+
     public int numAnimals;
+
+    public int wins = 0;
 
     //---------------------------------------------------
 
     List<List<SpriteRenderer>> board;
-
     //---------------------------------------------------
 
     private void Awake()
     {
+        playersAnimals = new List<Animal>();
         board = new List<List<SpriteRenderer>>();
         board.Add(row0.ToList());
         board.Add(row1.ToList());
@@ -111,11 +123,71 @@ public class Game : MonoBehaviour
         animals[originalPos.x][originalPos.y] = null;
     }
 
+    public bool hasAnimal(Vector2Int pos)
+    {
+        return animals[pos.x][pos.y] is not null;
+    }
+
     public void sell(Vector3Int originalPos)
     {
         numAnimals--;
         unitText.text = numAnimals.ToString() + "/" + maxAnimals.ToString();
         animals[originalPos.x][originalPos.y] = null;
+    }
+
+    public void roundOver()
+    {
+        wins++;
+        if (wins == 6)
+        {
+            wonGame.SetActive(true);
+        }
+        shopSprites.SetActive(true);
+        shop.enableButton();
+        for (int x = 0; x < 7; x++)
+        {
+            for (int y = 0; y < 4; y++)
+            {
+                if (animals[x][y] is not null)
+                {
+                    animals[x][y] = null;
+                }
+            }
+        }
+        for (int i = 0; i < playersAnimals.Count; i++)
+        {
+            Animal a = playersAnimals[i];
+            animals[a.startPos.x][a.startPos.y] = a;
+            a.gameObject.SetActive(true);
+            a.moveToStartPos();
+        }
+    }
+
+    public void pressStart()
+    {
+        makeAnimalEnemy(shop.getRandomAnimal(), 5, 2);
+        shopSprites.SetActive(false);
+        battleSystem.startBattle();
+        for (int x = 0; x < 3; x++)
+        {
+            for (int y = 0; y < 4; y++)
+            {
+                if (animals[x][y] is not null)
+                {
+                    battleSystem.ourAnimals.Add(new Vector2Int(x,y));
+                }
+            }
+        }
+        for (int x = 4; x < 7; x++)
+        {
+            for (int y = 0; y < 4; y++)
+            {
+                if (animals[x][y] is not null)
+                {
+                    battleSystem.enemyAnimals.Add(new Vector2Int(x, y));
+                }
+            }
+        }
     }
 
     //---------------------------------------------------
@@ -125,10 +197,23 @@ public class Game : MonoBehaviour
     {
         numAnimals++;
         unitText.text = numAnimals.ToString() + "/" + maxAnimals.ToString();
-        animals[x][y] = animal.GetComponent<Animal>();
         GameObject a = Instantiate(animal, new Vector2(x,y),Quaternion.identity);
+        animals[x][y] = a.GetComponent<Animal>();
         a.GetComponent<Animal>().game = this;
         a.GetComponent<Animal>().sellSprite = sellSprite;
+        a.GetComponent<Animal>().battleSystem = battleSystem;
+        a.transform.localScale = animal.transform.localScale;
+        playersAnimals.Add(a.GetComponent<Animal>());
+    }
+
+    void makeAnimalEnemy(GameObject animal, int x, int y)
+    {
+        GameObject a = Instantiate(animal, new Vector2(x, y), Quaternion.identity);
+        animals[x][y] = a.GetComponent<Animal>();
+        a.GetComponent<Animal>().game = this;
+        a.GetComponent<Animal>().sellSprite = sellSprite;
+        a.GetComponent<Animal>().ourTeam = false;
+        a.GetComponent<Animal>().battleSystem = battleSystem;
         a.transform.localScale = animal.transform.localScale;
     }
 

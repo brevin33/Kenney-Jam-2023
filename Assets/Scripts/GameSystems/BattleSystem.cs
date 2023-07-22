@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 using Vector2 = UnityEngine.Vector2;
 
@@ -23,24 +24,43 @@ public class BattleSystem : MonoBehaviour
     [SerializeField]
     float actionSpeed;
 
+    [SerializeField]
+    GameObject gameOverScreen;
+
 
     //---------------------------------------------------
     public static bool battling;
 
     //---------------------------------------------------
-    List<Vector2Int> ourAnimals;
+    public List<Vector2Int> ourAnimals;
 
-    List<Vector2Int> enemyAnimals;
+    public List<Vector2Int> enemyAnimals;
 
     float turnCooldown;
 
     float actionCooldown;
 
-    List<Vector2Int> actionsToTake;
+    public List<Vector2Int> actionsToTake;
 
-    int actionIndex = 999;
+    public int actionIndex = 999;
 
     //---------------------------------------------------
+
+    private void Awake()
+    {
+        actionsToTake = new List<Vector2Int>();
+    }
+
+    public void startBattle()
+    {
+        battling = true;
+        actionIndex = 999;
+        ourAnimals = new List<Vector2Int>();
+        enemyAnimals = new List<Vector2Int>();
+        actionsToTake = new List<Vector2Int>();
+        turnCooldown = 0;
+        actionCooldown = 0;
+    }
 
     private void Update()
     {
@@ -49,7 +69,7 @@ public class BattleSystem : MonoBehaviour
             if (actionIndex < actionsToTake.Count)
             {
                 actionCooldown += Time.deltaTime;
-                if (actionCooldown < actionSpeed)
+                if (actionCooldown > actionSpeed)
                 {
                     actionCooldown = 0;
                     takeAction(actionsToTake[actionIndex], game.animals[actionsToTake[actionIndex].x][actionsToTake[actionIndex].y].ourTeam);
@@ -81,6 +101,21 @@ public class BattleSystem : MonoBehaviour
             enemyAnimals.Remove(animal);
         }
         game.animals[animal.x][animal.y] = null;
+        if (enemyAnimals.Count == 0)
+        {
+            battling = false;
+            game.roundOver();
+        }
+        if (ourAnimals.Count == 0)
+        {
+            battling = false;
+            gameOverScreen.SetActive(true);
+        }
+    }
+
+    public void gameOver()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
 
@@ -89,27 +124,25 @@ public class BattleSystem : MonoBehaviour
 
     void takeActions()
     {
-        actionsToTake = new List<Vector2Int>(); ;
+        actionsToTake = new List<Vector2Int>();
         for (int i = 0; i < ourAnimals.Count; i++)
         {
             Vector2Int animal = ourAnimals[i];
             Animal us = game.animals[animal.x][animal.y];
             us.setCooldown(us.cooldown-1);
-            if (us.cooldown == 0)
+            if (us.cooldown <= 0)
             {
                 actionsToTake.Add(animal);
-                us.setCooldown(us.attackFrequencey);
             }
         }
         for (int i = 0; i < enemyAnimals.Count; i++)
         {
-            Vector2Int animal = ourAnimals[i];
+            Vector2Int animal = enemyAnimals[i];
             Animal us = game.animals[animal.x][animal.y];
             us.setCooldown(us.cooldown - 1);
             if (us.cooldown == 0)
             {
                 actionsToTake.Add(animal);
-                us.setCooldown(us.attackFrequencey);
             }
         }
 
@@ -123,7 +156,7 @@ public class BattleSystem : MonoBehaviour
         Animal us = game.animals[animal.x][animal.y];
         Animal Target = game.animals[closestEnemy.x][closestEnemy.y];
         bool attacked = false;
-
+        us.setCooldown(us.attackFrequencey);
         if (ManhattanDistance(animal,closestEnemy) <= us.getRange())
         {
             attacked = true;
@@ -147,12 +180,78 @@ public class BattleSystem : MonoBehaviour
         if (ydist >= xdist)
         {
             int moveDir = closestEnemy.y - animal.y > 0 ? 1 : -1;
+            if (game.hasAnimal( new Vector2Int(animal.x, animal.y + moveDir)))
+            {
+                moveDir = closestEnemy.x - animal.x > 0 ? 1 : -1;
+                if (game.hasAnimal(new Vector2Int(animal.x + moveDir, animal.y)) || closestEnemy.x == animal.x)
+                {
+                    return;
+                }
+                if (isOurAnimal)
+                {
+                    int i = ourAnimals.IndexOf(animal);
+                    ourAnimals[i] = new Vector2Int(ourAnimals[i].x + moveDir, ourAnimals[i].y);
+                }
+                else
+                {
+                    int i = enemyAnimals.IndexOf(animal);
+                    enemyAnimals[i] = new Vector2Int(enemyAnimals[i].x + moveDir, enemyAnimals[i].y);
+                }
+                game.move(Vector3Int.RoundToInt((Vector2)animal), new Vector3Int(animal.x + moveDir, animal.y, 0));
+                animal.x += moveDir;
+                us.move(animal);
+                return;
+            }
+            if (isOurAnimal)
+            {
+                int i = ourAnimals.IndexOf(animal);
+                ourAnimals[i] = new Vector2Int(animal.x, animal.y + moveDir);
+            }
+            else
+            {
+                int i = enemyAnimals.IndexOf(animal);
+                enemyAnimals[i] = new Vector2Int(enemyAnimals[i].x, enemyAnimals[i].y + moveDir);
+            }
+            game.move(Vector3Int.RoundToInt((Vector2)animal),new Vector3Int(animal.x,animal.y + moveDir,0));
             animal.y += moveDir;
             us.move(animal);
         }
         else
         {
             int moveDir = closestEnemy.x - animal.x > 0 ? 1 : -1;
+            if (game.hasAnimal(new Vector2Int(animal.x + moveDir, animal.y)))
+            {
+                moveDir = closestEnemy.y - animal.y > 0 ? 1 : -1;
+                if (game.hasAnimal(new Vector2Int(animal.x, animal.y + moveDir)) || closestEnemy.y == animal.y)
+                {
+                    return;
+                }
+                if (isOurAnimal)
+                {
+                    int i = ourAnimals.IndexOf(animal);
+                    ourAnimals[i] = new Vector2Int(animal.x, animal.y + moveDir);
+                }
+                else
+                {
+                    int i = enemyAnimals.IndexOf(animal);
+                    enemyAnimals[i] = new Vector2Int(enemyAnimals[i].x, enemyAnimals[i].y + moveDir);
+                }
+                game.move(Vector3Int.RoundToInt((Vector2)animal), new Vector3Int(animal.x, animal.y + moveDir, 0));
+                animal.y += moveDir;
+                us.move(animal);
+                return;
+            }
+            if (isOurAnimal)
+            {
+                int i = ourAnimals.IndexOf(animal);
+                ourAnimals[i] = new Vector2Int(ourAnimals[i].x + moveDir, ourAnimals[i].y);
+            }
+            else
+            {
+                int i = enemyAnimals.IndexOf(animal);
+                enemyAnimals[i] = new Vector2Int(enemyAnimals[i].x + moveDir, enemyAnimals[i].y);
+            }
+            game.move(Vector3Int.RoundToInt((Vector2)animal), new Vector3Int(animal.x + moveDir, animal.y, 0));
             animal.x += moveDir;
             us.move(animal);
         }
@@ -179,9 +278,9 @@ public class BattleSystem : MonoBehaviour
     {
         Vector2Int closestAnimal = new Vector2Int(999, 999);
         float closesDist = 999;
-        for (int i = 0; i < enemyAnimals.Count; i++)
+        for (int i = 0; i < ourAnimals.Count; i++)
         {
-            Vector2Int enemyAnimalPos = enemyAnimals[i];
+            Vector2Int enemyAnimalPos = ourAnimals[i];
             float dist = ManhattanDistance(animalPos, enemyAnimalPos);
             if (dist < closesDist)
             {
