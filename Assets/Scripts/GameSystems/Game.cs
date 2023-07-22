@@ -51,13 +51,15 @@ public class Game : MonoBehaviour
         board.Add(row2.ToList());
         board.Add(row3.ToList());
         animals = new List<List<Animal>>();
-        for (int i = 0; i < 7; i++)
+        for (int x = 0; x < 7; x++)
         {
             animals.Add(new List<Animal>());
         }
-        for (int j = 0; j < 4; j++)
+        for (int y = 0; y < 7; y++)
         {
-            animals[j].Add(null);
+            animals[y].Add(null);
+            animals[y].Add(null);
+            animals[y].Add(null);
         }
     }
 
@@ -86,7 +88,10 @@ public class Game : MonoBehaviour
         {
             for (int y = 0; y < 4; y++)
             {
-                if (animals[x][y].gameObject is null)
+                Debug.Log(x);
+                Debug.Log(y);
+                Debug.Log(animals);
+                if (animals[x][y] is null)
                 {
                     makeAnimal(animal,x,y);
                     return;
@@ -101,6 +106,9 @@ public class Game : MonoBehaviour
     void makeAnimal(GameObject animal, int x, int y)
     {
         numAnimals++;
+        animals[x][y] = animal.GetComponent<Animal>();
+        GameObject a = Instantiate(animal, new Vector2(x,y),Quaternion.identity);
+        a.transform.localScale = animal.transform.localScale;
     }
 
     void updateInputs()
