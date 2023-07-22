@@ -25,7 +25,7 @@ public class BattleSystem : MonoBehaviour
 
 
     //---------------------------------------------------
-    public bool battling;
+    public static bool battling;
 
     //---------------------------------------------------
     List<Vector2Int> ourAnimals;
@@ -94,22 +94,22 @@ public class BattleSystem : MonoBehaviour
         {
             Vector2Int animal = ourAnimals[i];
             Animal us = game.animals[animal.x][animal.y];
-            us.cooldown -= 1;
+            us.setCooldown(us.cooldown-1);
             if (us.cooldown == 0)
             {
                 actionsToTake.Add(animal);
-                us.cooldown = us.attackFrequencey;
+                us.setCooldown(us.attackFrequencey);
             }
         }
         for (int i = 0; i < enemyAnimals.Count; i++)
         {
             Vector2Int animal = ourAnimals[i];
             Animal us = game.animals[animal.x][animal.y];
-            us.cooldown -= 1;
+            us.setCooldown(us.cooldown - 1);
             if (us.cooldown == 0)
             {
                 actionsToTake.Add(animal);
-                us.cooldown = us.attackFrequencey;
+                us.setCooldown(us.attackFrequencey);
             }
         }
 

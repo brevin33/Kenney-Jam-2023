@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -25,11 +26,19 @@ public class Game : MonoBehaviour
     float boardAlpha;
     [SerializeField]
     int maxAnimals;
+    [SerializeField]
+    GameObject sellSprite;
+    [SerializeField]
+    TextMeshProUGUI unitText;
     //---------------------------------------------------
 
+    public static Vector2 trueMousePos;
 
+    public static Vector2 lastTrueMousePos;
 
     public static Vector2Int mousePos;
+
+    public static Vector2Int lastMousePos;
 
     public List<List<Animal>> animals;
 
@@ -38,8 +47,6 @@ public class Game : MonoBehaviour
     //---------------------------------------------------
 
     List<List<SpriteRenderer>> board;
-
-    Vector2Int lastMousePos;
 
     //---------------------------------------------------
 
@@ -57,6 +64,7 @@ public class Game : MonoBehaviour
         }
         for (int y = 0; y < 7; y++)
         {
+            animals[y].Add(null);
             animals[y].Add(null);
             animals[y].Add(null);
             animals[y].Add(null);
@@ -88,9 +96,6 @@ public class Game : MonoBehaviour
         {
             for (int y = 0; y < 4; y++)
             {
-                Debug.Log(x);
-                Debug.Log(y);
-                Debug.Log(animals);
                 if (animals[x][y] is null)
                 {
                     makeAnimal(animal,x,y);
@@ -100,21 +105,39 @@ public class Game : MonoBehaviour
         }
     }
 
+    public void move(Vector3Int originalPos, Vector3Int position)
+    {
+        animals[position.x][position.y] = animals[originalPos.x][originalPos.y];
+        animals[originalPos.x][originalPos.y] = null;
+    }
+
+    public void sell(Vector3Int originalPos)
+    {
+        numAnimals--;
+        unitText.text = numAnimals.ToString() + "/" + maxAnimals.ToString();
+        animals[originalPos.x][originalPos.y] = null;
+    }
+
     //---------------------------------------------------
 
 
     void makeAnimal(GameObject animal, int x, int y)
     {
         numAnimals++;
+        unitText.text = numAnimals.ToString() + "/" + maxAnimals.ToString();
         animals[x][y] = animal.GetComponent<Animal>();
         GameObject a = Instantiate(animal, new Vector2(x,y),Quaternion.identity);
+        a.GetComponent<Animal>().game = this;
+        a.GetComponent<Animal>().sellSprite = sellSprite;
         a.transform.localScale = animal.transform.localScale;
     }
 
     void updateInputs()
     {
         lastMousePos = mousePos;
-        mousePos = Vector2Int.RoundToInt(camera.ScreenToWorldPoint(Input.mousePosition));
+        lastTrueMousePos = trueMousePos;
+        trueMousePos = camera.ScreenToWorldPoint(Input.mousePosition);
+        mousePos = Vector2Int.RoundToInt(trueMousePos);
     }
 
     //---------------------------------------------------
@@ -130,4 +153,5 @@ public class Game : MonoBehaviour
     {
         return mousePos != lastMousePos;
     }
+
 }

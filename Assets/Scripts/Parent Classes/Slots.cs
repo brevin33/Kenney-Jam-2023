@@ -7,7 +7,7 @@ public class Slots : MonoBehaviour
 {
     public Animal animal;
     [SerializeField]
-    GameObject description;
+    public GameObject description;
 
     [SerializeField]
     TextMeshProUGUI nameText;
@@ -21,7 +21,7 @@ public class Slots : MonoBehaviour
     {
         description.SetActive(true);
         nameText.text = animal.name;
-        abilityText.text = animal.abilityText;
+        abilityText.text = animal.abilityText1 + ": " + animal.abilityText2 + "\n" + "HP: " + animal.maxHP.ToString() + " Attack: " + animal.damage.ToString() + " Cooldown: " + animal.attackFrequencey.ToString();
     }
 
     private void OnMouseExit()
@@ -31,6 +31,6 @@ public class Slots : MonoBehaviour
 
     private void OnMouseDown()
     {
-        shop.buy(animalId);
+        shop.buy(animalId, this);
     }
 }

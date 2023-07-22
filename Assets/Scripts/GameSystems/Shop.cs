@@ -31,6 +31,9 @@ public class Shop : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI moneyText;
 
+    [SerializeField]
+    TextMeshProUGUI refreshText;
+
     //---------------------------------------------------
     public int refreshes = 2;
 
@@ -50,6 +53,7 @@ public class Shop : MonoBehaviour
     public void refreshButtonClicked()
     {
         refreshes -= 1;
+        refreshText.text = refreshes.ToString() + "x";
         if (refreshes == 0)
         {
             refreshButton.interactable = false;
@@ -62,6 +66,7 @@ public class Shop : MonoBehaviour
         refreshButton.interactable = true;
         refresh();
         refreshes = 2;
+        refreshText.text = refreshes.ToString() + "x";
         money = 3;
         moneyText.text = "$" + money.ToString();
     }
@@ -74,18 +79,21 @@ public class Shop : MonoBehaviour
             GameObject randomAnimal = Animals[r];
             Slots[i].animal = randomAnimal.GetComponent<Animal>();
             Slots[i].animalId = r;
+            Slots[i].gameObject.SetActive(true);
             renders[i].sprite = randomAnimal.GetComponent<SpriteRenderer>().sprite;
         }
     }
 
 
-    public void buy(int index)
+    public void buy(int index, Slots slot)
     {
         if (money == 0)
         {
             return;
         }
         money -= 1;
+        slot.gameObject.SetActive(false);
+        slot.description.SetActive(false);
         moneyText.text = "$" + money.ToString();
         game.spawn(Animals[index]);
     }
