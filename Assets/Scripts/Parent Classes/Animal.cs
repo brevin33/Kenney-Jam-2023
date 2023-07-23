@@ -125,12 +125,13 @@ public class Animal : MonoBehaviour
     public void hit(int damage,Animal other)
     {
         hitEffect(other,damage);
+        game.hitSoundEffect();
         HP -= damage;
         HPText.text = HP.ToString();
         if (HP <= 0)
         {
-            battleSystem.animalFainted(Vector2Int.RoundToInt(transform.position), ourTeam);
             faint();
+            battleSystem.animalFainted(Vector2Int.RoundToInt(transform.position), ourTeam);
         }
         else
         {
@@ -143,6 +144,7 @@ public class Animal : MonoBehaviour
     {
         moveEffect();
         desiredPos = pos;
+        game.moveBattleSoundEffect();
         StartCoroutine(moveToPos());
     }
 
@@ -159,13 +161,25 @@ public class Animal : MonoBehaviour
         HPText.text = HP.ToString();
         attackText.text = damage.ToString();
         cooldownText.text = cooldown.ToString();
+        gameObject.SetActive(true);
     }
 
-
+    public void turnOn()
+    {
+        Debug.Log("here");
+        gameObject.SetActive(true);
+    }
     void faint()
     {
         dieEffect();
-        gameObject.SetActive(false);
+        if (!ourTeam)
+        {
+            Destroy(gameObject);
+        }
+        else
+        {
+            gameObject.SetActive(false);
+        }
     }
 
 
@@ -220,6 +234,11 @@ public class Animal : MonoBehaviour
         }
         transform.position += (Vector3)(Game.trueMousePos - Game.lastTrueMousePos);
     }
+
+    public void kill()
+    {
+        Destroy(gameObject);
+    }
     private void OnMouseUp()
     {
         sellSprite.SetActive(false);
@@ -234,6 +253,7 @@ public class Animal : MonoBehaviour
                 Animal a = game.animals[Game.mousePos.x][Game.mousePos.y];
                 if (a.name1 + a.name2 == name1 + name2 && Game.mousePos != startPos)
                 {
+                    game.combineSoundEffect();
                     game.sell(originalPos);
                     a.damage += 1;
                     a.maxHP += 1;
@@ -245,22 +265,8 @@ public class Animal : MonoBehaviour
                 }
                 else if (!(a.combined || combined) && Game.mousePos != startPos)
                 {
-                    game.sell(originalPos);
-                    a.combined = true;
-                    a.damage = (a.damage + damage)/2;
-                    a.maxHP = (maxHP + a.maxHP)/2;
-                    a.HP = a.maxHP;
-                    a.range = (int)Mathf.Floor((a.range+range)/2f);
-                    a.attackFrequencey = (int)Mathf.Ceil((a.cooldown + cooldown) / 2f);
-                    a.cooldown = a.attackFrequencey;
-                    a.name2 = name2;
-                    a.HPText.text = a.HP.ToString();
-                    a.attackText.text = a.damage.ToString();
-                    a.cooldownText.text = a.cooldown.ToString();
-                    a.abilityText2 = abilityText2;
-                    a.effect = effect;
-                    a.mat.SetTexture("_Animal2", GetComponent<SpriteRenderer>().sprite.texture);
-                    Destroy(gameObject);
+                    game.combineSoundEffect();
+                    combine(a);
                     return;
                 }
                 else
@@ -269,6 +275,7 @@ public class Animal : MonoBehaviour
                     return;
                 }
             }
+            game.moveSoundEffect();
             transform.position = new Vector3(Game.mousePos.x, Game.mousePos.y, 0);
             startPos = Vector2Int.RoundToInt( transform.position);
             game.move(originalPos,Vector3Int.RoundToInt( transform.position));
@@ -299,6 +306,26 @@ public class Animal : MonoBehaviour
     private void OnMouseExit()
     {
         description.SetActive(false);
+    }
+
+    public void combine(Animal a)
+    {
+        game.sell(originalPos);
+        a.combined = true;
+        a.damage = (a.damage + damage) / 2;
+        a.maxHP = (maxHP + a.maxHP) / 2;
+        a.HP = a.maxHP;
+        a.range = (int)Mathf.Floor((a.range + range) / 2f);
+        a.attackFrequencey = (int)Mathf.Ceil((a.cooldown + cooldown) / 2f);
+        a.cooldown = a.attackFrequencey;
+        a.name2 = name2;
+        a.HPText.text = a.HP.ToString();
+        a.attackText.text = a.damage.ToString();
+        a.cooldownText.text = a.cooldown.ToString();
+        a.abilityText2 = abilityText2;
+        a.effect = effect;
+        a.mat.SetTexture("_Animal2", GetComponent<SpriteRenderer>().sprite.texture);
+        Destroy(gameObject);
     }
 
 

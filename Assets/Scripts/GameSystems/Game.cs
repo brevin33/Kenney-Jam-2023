@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 public class Game : MonoBehaviour
@@ -40,6 +42,38 @@ public class Game : MonoBehaviour
     GameObject wonGame;
     [SerializeField]
     TextMeshProUGUI winsText;
+    [SerializeField]
+    public int lifes;
+    [SerializeField]
+    public TextMeshProUGUI lifeText;
+    [SerializeField]
+    SpriteRenderer soundSprite;
+    [SerializeField]
+    Sprite soundOff;
+    [SerializeField]
+    Sprite soundOn;
+    [SerializeField]
+    GameObject slider;
+    [SerializeField]
+    AudioSource hitSound;
+    [SerializeField]
+    AudioSource reRollSound;
+    [SerializeField]
+    AudioSource combineSound;
+    [SerializeField]
+    AudioSource buySound;
+    [SerializeField]
+    AudioSource moveSound;
+    [SerializeField]
+    AudioSource moveBattleSound;
+    [SerializeField]
+    AudioSource roundWinSound;
+    [SerializeField]
+    AudioSource roundLoseSound;
+    [SerializeField]
+    AudioSource gameLoseSound;
+    [SerializeField]
+    AudioSource gameWinSound;
     //---------------------------------------------------
 
     public static Vector2 trueMousePos;
@@ -57,6 +91,8 @@ public class Game : MonoBehaviour
     public int numAnimals;
 
     public int wins = 0;
+
+    public static float sound = 1.0f;
 
     //---------------------------------------------------
 
@@ -83,7 +119,7 @@ public class Game : MonoBehaviour
             animals[y].Add(null);
             animals[y].Add(null);
         }
-
+        lifeText.text = "  " + lifes.ToString();
     }
 
     private void Update()
@@ -144,15 +180,23 @@ public class Game : MonoBehaviour
         animals[originalPos.x][originalPos.y] = null;
     }
 
-    public void roundOver()
+    public void roundOver(bool win)
     {
-        wins++;
-        winsText.text = wins.ToString() + "/6";
-        if (wins == 6)
+        if (win)
         {
-            wonGame.SetActive(true);
+            roundWinSoundEffect();
+            wins++;
+            winsText.text = wins.ToString() + "/6";
+            if (wins == 6)
+            {
+                gameWinSoundEffect();
+                wonGame.SetActive(true);
+            }
         }
-
+        else
+        {
+            roundLoseSoundEffect();
+        }
         shopSprites.SetActive(true);
         shop.enableButton();
         for (int x = 0; x < 7; x++)
@@ -161,6 +205,10 @@ public class Game : MonoBehaviour
             {
                 if (animals[x][y] is not null)
                 {
+                    if (!animals[x][y].ourTeam)
+                    {
+                        animals[x][y].kill();
+                    }
                     animals[x][y] = null;
                 }
             }
@@ -169,7 +217,7 @@ public class Game : MonoBehaviour
         {
             Animal a = playersAnimals[i];
             animals[a.startPos.x][a.startPos.y] = a;
-            a.gameObject.SetActive(true);
+            a.turnOn();
             a.moveToStartPos();
             a.battleOver();
         }
@@ -177,6 +225,17 @@ public class Game : MonoBehaviour
 
     public void pressStart()
     {
+        if(numAnimals == 0)
+        {
+            lifes--;
+            lifeText.text = "  " + lifes.ToString();
+            roundOver(false);
+            if (lifes == 0)
+            {
+                battleSystem.gameOverScreen.SetActive(true);
+            }
+            return;
+        }
         makeAnimalEnemy(shop.getRandomAnimal(), 5, 2);
         shopSprites.SetActive(false);
         battleSystem.startBattle();
@@ -205,8 +264,96 @@ public class Game : MonoBehaviour
     }
 
     //---------------------------------------------------
+    public void roundWinSoundEffect()
+    {
+        float v = roundWinSound.volume;
+        roundWinSound.volume *= sound;
+        roundWinSound.Play();
+        roundWinSound.volume = v;
+    }
 
+    public void roundLoseSoundEffect()
+    {
+        float v = roundLoseSound.volume;
+        roundLoseSound.volume *= sound;
+        roundLoseSound.Play();
+        roundLoseSound.volume = v;
+    }
 
+    public void gameWinSoundEffect()
+    {
+        float v = gameWinSound.volume;
+        gameWinSound.volume *= sound;
+        gameWinSound.Play();
+        gameWinSound.volume = v;
+    }
+
+    public void gameLoseSoundEffect()
+    {
+        float v = gameLoseSound.volume;
+        gameLoseSound.volume *= sound;
+        gameLoseSound.Play();
+        gameLoseSound.volume = v;
+    }
+    public void hitSoundEffect()
+    {
+        float v = hitSound.volume;
+        hitSound.volume *= sound;
+        hitSound.Play();
+        hitSound.volume = v;
+    }
+
+    public void moveSoundEffect()
+    {
+        float v = moveSound.volume;
+        moveSound.volume *= sound;
+        moveSound.Play();
+        moveSound.volume = v;
+    }
+
+    public void moveBattleSoundEffect()
+    {
+        float v = moveBattleSound.volume;
+        moveBattleSound.volume *= sound;
+        moveBattleSound.Play();
+        moveBattleSound.volume = v;
+    }
+    public void reRollSoundEffect()
+    {
+        float v = reRollSound.volume;
+        reRollSound.volume *= sound;
+        reRollSound.Play();
+        reRollSound.volume = v;
+    }
+
+    public void combineSoundEffect()
+    {
+        float v = combineSound.volume;
+        combineSound.volume *= sound;
+        combineSound.Play();
+        combineSound.volume = v;
+    }
+
+    public void BuySoundEffect()
+    {
+        float v = buySound.volume;
+        buySound.volume *= sound;
+        buySound.Play();
+        buySound.volume = v;
+    }
+
+    public void changeVolume(float value)
+    {
+        float sound = value;
+        if (sound <= 0f)
+        {
+            soundSprite.sprite = soundOff;
+        }
+        else
+        {
+            soundSprite.sprite = soundOn;
+        }
+    }
     void makeAnimal(GameObject animal, int x, int y)
     {
         numAnimals++;

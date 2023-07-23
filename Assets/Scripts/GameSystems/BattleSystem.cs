@@ -26,7 +26,7 @@ public class BattleSystem : MonoBehaviour
     float actionSpeed;
 
     [SerializeField]
-    GameObject gameOverScreen;
+    public GameObject gameOverScreen;
 
 
     //---------------------------------------------------
@@ -77,6 +77,10 @@ public class BattleSystem : MonoBehaviour
                         actionCooldown = 0;
                         takeAction(actionsToTake[actionIndex], game.animals[actionsToTake[actionIndex].x][actionsToTake[actionIndex].y].ourTeam);
                     }
+                    if (!battling)
+                    {
+                        return;
+                    }
                     actionIndex += 1;
                 }
                 return;
@@ -108,12 +112,22 @@ public class BattleSystem : MonoBehaviour
         if (enemyAnimals.Count == 0)
         {
             battling = false;
-            game.roundOver();
+            game.roundOver(true);
         }
         if (ourAnimals.Count == 0)
         {
             battling = false;
-            gameOverScreen.SetActive(true);
+            game.lifes--;
+            game.lifeText.text = "  " + game.lifes.ToString();
+            if (game.lifes == 0)
+            {
+                game.gameLoseSoundEffect();
+                gameOverScreen.SetActive(true);
+            }
+            else
+            {
+                game.roundOver(false);
+            }
         }
     }
 
@@ -181,7 +195,7 @@ public class BattleSystem : MonoBehaviour
     {
         int xdist = Mathf.Abs(closestEnemy.x - animal.x);
         int ydist = Mathf.Abs(closestEnemy.y - animal.y);
-        if (ydist >= xdist)
+        if (ydist > xdist)
         {
             int moveDir = closestEnemy.y - animal.y > 0 ? 1 : -1;
             if (game.hasAnimal( new Vector2Int(animal.x, animal.y + moveDir)))

@@ -58,6 +58,7 @@ public class Shop : MonoBehaviour
         {
             refreshButton.interactable = false;
         }
+        game.reRollSoundEffect();
         refresh();
     }
 
@@ -70,9 +71,9 @@ public class Shop : MonoBehaviour
     {
         refreshButton.interactable = true;
         refresh();
-        refreshes = 2;
+        refreshes = 1;
         refreshText.text = refreshes.ToString() + "x";
-        money = 3;
+        money = 2;
         moneyText.text = "$" + money.ToString();
     }
 
@@ -97,6 +98,7 @@ public class Shop : MonoBehaviour
             return;
         }
         money -= 1;
+        game.BuySoundEffect();
         slot.gameObject.SetActive(false);
         slot.description.SetActive(false);
         moneyText.text = "$" + money.ToString();
